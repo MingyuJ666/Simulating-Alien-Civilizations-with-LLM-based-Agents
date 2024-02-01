@@ -7,14 +7,13 @@ def transfer_function(civilization):
     # 定义一个 5x5 的矩阵，所有元素都是 1.2
     matrix = [[1.2 for _ in range(5)] for _ in range(5)]
     return matrix
-# 更新 transfer_function.py 文件，添加 apply_function 函数
 
 def apply_function(civilization):
     transfer_matrix = transfer_function(civilization)
     resource_vector = resources[civilization]
 
     # 转换字典中的资源值为矩阵可操作的列表形式
-    resource_list = [value for key, value in resource_vector.items()]
+    resource_list = [value[0] for key, value in resource_vector.items()]
 
     # 应用转移矩阵
     updated_resources = []
@@ -24,7 +23,6 @@ def apply_function(civilization):
 
     # 更新资源字典
     for i, key in enumerate(resource_vector.keys()):
-        resources[civilization][key] = updated_resources[i]
-
+        resources[civilization][key] = [updated_resources[i]]
 
 
