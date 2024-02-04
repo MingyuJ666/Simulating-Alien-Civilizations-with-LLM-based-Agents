@@ -15,4 +15,3 @@ def print_civilization_resources(civilization):
             print(f'        "{key}": {value},')
     else:
         print(f'No resources found for civilization: {civilization}')
-

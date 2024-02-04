@@ -1,5 +1,6 @@
 from CivilizationInitializer import CivilizationInitializer
 import copy
+import asyncio
 
 # Assuming CivilizationInitializer includes a history attribute now
 initializer = CivilizationInitializer()
@@ -14,7 +15,7 @@ def get_historical_resources(civ, round_number):
         return None  # 或者是一个表示资源默认状态的字典
 
 
-def record_history(civilization, round_number, resources, political_system, finding_time):
+def record_history(civilization, round_number, resources, political_system):
     initializer = CivilizationInitializer()
 
     round_label = "Before game start" if round_number < 0 else f"Round {round_number}"
@@ -67,16 +68,3 @@ def print_record():
                 # 如果记录中没有 'round_label'，可能需要处理或打印一条错误信息
                 print("Error: 'round_label' missing in record.")
             
-            # 打印发现的文明及其资源信息
-            if record.get("discovered_civilizations"):  # 如果存在且不为空
-                    print("    Discovered Civilizations:")
-                    for discovered_civ, civ_info in record["discovered_civilizations"].items():
-                        print(f"      {discovered_civ}:")
-                        if civ_info.get("resources"):  # 使用.get()避免KeyError
-                            print("        Resources:")
-                            for resource, value in civ_info["resources"].items():
-                                print(f"          {resource}: {value}")
-                        else:
-                            print("        Resources: Information not available")
-            
-

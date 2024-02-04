@@ -88,22 +88,9 @@ class CivilizationInitializer:
             
             # 应用转移矩阵
             for i, resource_key in enumerate(resource_keys):
-                for j, _ in enumerate(resource_keys):
-                    updated_resources[resource_key][0] += sum(self.transfer_matrices[civ][i][k] * self.resources[civ][resource_keys[k]][0] for k in range(len(resource_keys)))
+                updated_resources[resource_key][0] = sum(self.transfer_matrices[civ][i][k] * self.resources[civ][resource_keys[k]][0] for k in range(len(resource_keys)))
             
             self.resources[civ] = updated_resources
-
-    def update_history(self, round_number):
-        """
-        更新所有文明在指定回合的资源历史记录
-        """
-        for civ in self.civilizations:
-            self.apply_transfer_matrix(civ)
-            self.history[civ].append({
-                "round": round_number,
-                "resources": self.resources[civ],
-                "political_system": self.political_system[civ]
-            })
 
     def initialize_resource_history_for_civilization(self, civ):
         # 假设这里有一个 self.resource_history 属性
@@ -144,3 +131,24 @@ class CivilizationInitializer:
             print(f'  Resources: {self.resources[civ]}')
             print(f'  Political System: {self.political_system[civ]}')
             print(f'  Time Variable: {self.time_variables[civ]}\n')
+
+    #更新状态转移矩阵    
+    def update_transfer_matrix(self, civ_name, new_matrix):
+        if civ_name in self.transfer_matrices:
+            self.transfer_matrices[civ_name] = new_matrix
+            print(f"Transfer matrix for {civ_name} updated successfully.")
+        else:
+            print(f"Error: Civilization {civ_name} not found.")
+
+    def get_political_system(self, civ_name):
+        """
+        获取指定文明的政治体制。
+        """
+        return self.political_system.get(civ_name, "Unknown")
+
+    def update_political_system(initializer, civ_name, new_system):
+        if civ_name in initializer.civilizations:
+            initializer.political_system[civ_name] = new_system
+            print(f"Political system for {civ_name} changed to {new_system}.")
+        else:
+            print(f"Civilization {civ_name} not found.")

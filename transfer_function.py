@@ -19,6 +19,3 @@ def apply_function(civilization):
 
     for i, key in enumerate(resource_vector.keys()):
         initializer.resources[civilization][key] = [updated_resources[i]]
-
-
-
