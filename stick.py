@@ -4,16 +4,23 @@ import copy
 # Assuming CivilizationInitializer includes a history attribute now
 initializer = CivilizationInitializer()
 
+def get_historical_resources(civ, round_number):
+    # 假设history的结构是 {civ: {round: resources}}
+    # 如果指定回合的资源信息存在，则返回该信息
+    if round_number in initializer.history[civ]:
+        return initializer.history[civ][round_number]
+    else:
+        # 如果没有找到指定回合的信息，返回None或者一个默认值
+        return None  # 或者是一个表示资源默认状态的字典
+
+
 def record_history(civilization, round_number, resources, political_system, finding_time):
     initializer = CivilizationInitializer()
 
-    # 如果是负回合数，意味着游戏开始前的历史记录
-    round_label = f"Before game start ({-round_number} round(s) before)" if round_number < 0 else f"Round {round_number}"
-    
-    # 使用copy.deepcopy确保对resources进行深拷贝
+    round_label = "Before game start" if round_number < 0 else f"Round {round_number}"
+
     current_resources = copy.deepcopy(resources)
 
-    # 构建当前文明的历史记录，包括政治体制和发现的文明信息
     current_record = {
         "round_number": round_number,
         "round_label": round_label,
@@ -22,39 +29,54 @@ def record_history(civilization, round_number, resources, political_system, find
         "discovered_civilizations": {}
     }
 
-    # 遍历发现的文明，根据finding_time和interplanetary_knowledge更新发现的文明信息
-    for discovered_civ, civ_info in initializer.interplanetary_knowledge.get(civilization, {}).items():
-        if round_number >= finding_time.get((civilization, discovered_civ), float('inf')):
-            # 这里采用深拷贝是为了保留记录时刻的资源状态
-            discovered_resources = copy.deepcopy(civ_info.get("resources", "Information not available"))
-            # 更新current_record以包含发现的文明及其资源信息
-            current_record["discovered_civilizations"][discovered_civ] = {
-                "resources": discovered_resources
-            }
+    # 遍历发现的文明信息
+    for discovered_civ in initializer.civilizations:
+        if discovered_civ != civilization:  # 确保不是自己
+            discovery_info = initializer.interplanetary_knowledge[civilization].get(discovered_civ)
+            if discovery_info:  # 如果有发现信息
+                current_record["discovered_civilizations"][discovered_civ] = discovery_info
 
-    # 将当前记录添加到历史中，不需要再次添加，避免重复
+    # 将当前记录添加到该回合的记录列表中
     initializer.history[civilization].append(current_record)
+
+
 
 def print_record():
     initializer = CivilizationInitializer()
     for civ, records in initializer.history.items():
         print(f"History for {civ}:")
         for record in records:
-            # 打印当前回合标签、资源和政治体制
-            print(f"  {record['round_label']}:")
-            print(f"    Resources:")
-            for resource, value in record['resources'].items():
-                print(f"      {resource}: {value}")
-            print(f"    Political System: {record['political_system']}")
-
+            if 'round_label' in record:
+                # 打印当前回合标签、资源和政治体制
+                print(f"  {record['round_label']}:")
+                print(f"    Resources:")
+                for resource, value in record['resources'].items():
+                    print(f"      {resource}: {value}")
+                print(f"    Political System: {record['political_system']}")
+                if 'discovered_civilizations' in record:
+                    print("    Discovered Civilizations:")
+                    for discovered_civ, civ_info in record['discovered_civilizations'].items():
+                        print(f"      {discovered_civ}:")
+                        if 'resources' in civ_info:
+                            print("        Resources:")
+                            for resource, value in civ_info['resources'].items():
+                                print(f"          {resource}: {value}")
+                        else:
+                            print("        Resources: Information not available")
+            else:
+                # 如果记录中没有 'round_label'，可能需要处理或打印一条错误信息
+                print("Error: 'round_label' missing in record.")
+            
             # 打印发现的文明及其资源信息
-            if record["discovered_civilizations"]:  # 确保发现的文明列表不为空
-                print("    Discovered Civilizations:")
-                for discovered_civ, civ_info in record["discovered_civilizations"].items():
-                    print(f"      {discovered_civ}:")
-                    if "resources" in civ_info:  # 确保资源信息不为空
-                        print(f"        Resources:")
-                        for resource, value in civ_info["resources"].items():
-                            print(f"          {resource}: {value}")
-                    else:
-                        print("        Resources: Information not available")
+            if record.get("discovered_civilizations"):  # 如果存在且不为空
+                    print("    Discovered Civilizations:")
+                    for discovered_civ, civ_info in record["discovered_civilizations"].items():
+                        print(f"      {discovered_civ}:")
+                        if civ_info.get("resources"):  # 使用.get()避免KeyError
+                            print("        Resources:")
+                            for resource, value in civ_info["resources"].items():
+                                print(f"          {resource}: {value}")
+                        else:
+                            print("        Resources: Information not available")
+            
+

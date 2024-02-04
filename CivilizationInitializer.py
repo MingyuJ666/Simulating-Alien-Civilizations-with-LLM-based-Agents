@@ -37,17 +37,49 @@ class CivilizationInitializer:
         self.distances = self.initialize_distances()
         self.interplanetary_knowledge = {civ: {} for civ in self.civilizations}
         self.resources = self.initialize_resources()
-        self.apply_transfer_matrices_pre_game()
+        self.initialize_history()
 
     def initialize_resources(self):
         # 初始化每个文明的资源为1
         return {civ: {"military_capability": [1], "technology_development": [1], "production_capability": [1], "consumption": [1], "storage": [1]} for civ in self.civilizations}
     
-    def apply_transfer_matrices_pre_game(self):
-        # 应用转移矩阵到游戏开始前的每个时间点
+    def initialize_history(self):
         for civ in self.civilizations:
-            times_to_apply = self.time_variables[civ]
-            self.apply_transfer_matrix(civ, times_to_apply)
+            birth_time = -self.time_variables[civ]  # 文明的诞生时间，假设已经初始化
+
+            # 初始化该文明的历史记录为一个空列表
+            self.history[civ] = []
+
+            # 对于每个文明从其诞生回合到游戏开始前的回合
+            for round_number in range(birth_time, 0):
+                # 应用转移矩阵来更新资源，这里假设每个回合的资源更新逻辑已经在apply_transfer_matrix中处理
+                self.apply_transfer_matrix(civ, 1)  # 假设这个方法能够接受文明名称和应用次数
+
+                # 创建一个记录字典，包含回合信息和资源状态
+                record = {
+                    "round_number": round_number,
+                    "round_label": f"round {round_number}",
+                    "resources": copy.deepcopy(self.resources[civ]),
+                    "political_system": self.political_system[civ],
+                    "discovered_civilizations": {}  # 这个假设需要根据你的代码逻辑来调整
+                }
+
+                # record = {
+                #     "round": round_number,
+                #     "resources": copy.deepcopy(self.resources[civ]),
+                #     "political_system": self.political_system[civ]
+                # }
+
+                # 将记录添加到历史列表中
+                self.history[civ].append(record)
+
+
+
+    # def apply_transfer_matrices_pre_game(self):
+    #     # 应用转移矩阵到游戏开始前的每个时间点
+    #     for civ in self.civilizations:
+    #         times_to_apply = self.time_variables[civ]
+    #         self.apply_transfer_matrix(civ, times_to_apply)
 
     def apply_transfer_matrix(self, civ, times=1):
         for _ in range(times):
