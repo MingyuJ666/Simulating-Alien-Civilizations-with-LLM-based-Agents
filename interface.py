@@ -13,9 +13,6 @@ def update_civilization_transfer_matrix(civ_name, new_matrix):
 # new_matrix = [[新的矩阵值]]
 # update_civilization_transfer_matrix("Earth", new_matrix)
 
-
-
-
 # 假设在 CivilizationInitializer 类中有一个方法来获取历史记录，
 # 这里添加一个函数来格式化这些记录为字符串
 
@@ -52,3 +49,16 @@ def parse_chatgpt_response(response):
     transfer_matrix = np.array([[float(num) for num in row.split()] for row in transfer_matrix_str.split('\n')])
     
     return political_system, transfer_matrix
+
+
+def string_to_matrix(matrix_string):
+    # 假设matrix_string是一个以换行符分隔的字符串，每行有5个由空格分隔的数字
+    matrix_lines = matrix_string.strip().split('\n')
+    matrix = np.zeros((5, 5))  # 创建一个5x5的零矩阵
+    for i, line in enumerate(matrix_lines):
+        row_values = line.split()
+        if len(row_values) != 5:
+            raise ValueError("每行需要有5个数字")
+        matrix[i, :] = [float(value) for value in row_values]
+    return matrix
+

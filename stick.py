@@ -41,7 +41,6 @@ def record_history(civilization, round_number, resources, political_system):
     initializer.history[civilization].append(current_record)
 
 
-
 def print_record():
     initializer = CivilizationInitializer()
     for civ, records in initializer.history.items():
