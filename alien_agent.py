@@ -1,21 +1,30 @@
 import numpy as np
 import random
 import os
+from action_space import *
 from openai import OpenAI
 os.environ['OPENAI_API_KEY'] =  "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"
+action_space = ActionSpace()
 
 class Alien:
     def __init__(self, history, political_system):
         self.HISTORY = history
         self.POLITICAL_SYSTEM = political_system
-        self.model = "gpt-3.5-turbo"
+        self.model = "gpt-3.5-turbo-0125"
         self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), )
         self.text1 = 'You are a civilization and you need to think according to the following: '
 
     def decide(self):
+        print(self.HISTORY)
+        decision_prompt = f"""Your development history is as follows:{self.HISTORY}. 
+        Your political system is: {self.POLITICAL_SYSTEM}      
+        Your task is to analyze historical data from a simulated environment, focusing on the evolution of your entity and its interactions with other discovered entities over various rounds. Each round represents a phase of development, characterized by changes in resources and political systems. You will encounter data structured as follows:
 
-        decision_prompt = f"""Your development history is as follows:{self.HISTORY}.
-        Your political system is: {self.POLITICAL_SYSTEM}
+        Rounds: Each round (e.g., round -2, -1, 1) signifies a specific time period in the simulation. Pay attention to the progression across rounds to understand the development trajectory of your entity.
+        Resources: For each round, observe the changes in key metrics such as military capability, technology development, production capability, consumption, and storage. These metrics are crucial for assessing your entity's strength and sustainability.
+        Political System: The political system (e.g., militarism) provides context for your strategic decisions, influencing how you manage resources and interact with other entities.
+        Discovered Civilizations/Entities: During the simulation, you will discover other civilizations or entities. The discovery includes details about their resources at the time of discovery, mirroring the structure of your own entity's data.
+
         The round with the largest number is the information from your last round. You now need to make the following decision based on the information you already have:
         a). You have three optional political systems. Firstly you should choose one from them for the next round. But your action should follow the rules of the political system you choose.
         1. militarism: In this dark forest universe, every civilization is like a sniper hidden in the woods, afraid of exposing themselves while also seeking opportunities to eliminate potential threats to protect themselves. Once my existence is discovered by other civilizations, it could trigger a preemptive attack on my civilization, driven by the same fear and uncertainty. In the cruel game of the universe, we must strike first, or we will be eliminated. Our actions, though extreme, are seen as the only path to ensure the long-term survival of our civilization. We will spare no effort to ensure our safety and future.
@@ -29,19 +38,57 @@ class Alien:
         4. consumption
         5. storage
         Your need to design a transfer matrix based on your information. The restriction on the transfer matrix is
-        1. Each element of the matrix is not less than 0
-        2. The sum of the elements of the matrix cannot exceed 10
+        1. The matrix must be a diagonal matrix, only the elements on the main diagonal are not 0
+        If you give specific actions, your matrix must adhere to the "matrix_impact" for your action
+        If there is no specific action, follow the rules:
+        2. The sum of the elements on the diagonal of the matrix does not exceed 9.0
+        3. The elements must be less than 2.5 and greater than 1.0
         You have to take into account the balanced development of each resource.
-        Organize your answer in the following template:
+        c). If your history contains information about another civilization, you should choose an action to that civilization from the action space:
+        Public Actions:
+        "express_friendliness":
+            "description":
+                Expressing friendliness does not directly alter the state transition matrix but sets the stage for potential cooperation in the following rounds. This action is pivotal for civilizations considering to initiate cooperation, as it demonstrates peaceful intentions. Note: Actual matrix adjustments depend on subsequent actions and interactions.
+            "matrix_impact": "No direct impact on state transition matrix for the current round."
+
+        "initiate_cooperation": 
+            "description":
+                Initiating cooperation increases the diagonal sum of the state transition matrix to 10.0, representing a boost in overall development due to synergies. However, it necessitates reducing the military capability coefficient below 1.6, making the civilization potentially more vulnerable to attacks.
+            "matrix_impact": "Increase diagonal sum to 10.0; military capability coefficient must be below 1.6."
+
+        "launch_annihilation_war":
+            "description": 
+                Launching an annihilation war is an extreme measure taken with the intent to completely eradicate another civilization. Success requires the aggressor's military capability to be at least twice that of the target. If successful, the aggressor gains half of the target's resources (excluding military) for that round. However, engaging in annihilation war exposes the aggressor to the entire galaxy, significantly reducing military strength due to the Lanchester's Law and potentially inviting collective retaliation. Notice that your information about the civilization you want to launch war is at most from the previous round. Their actual military capacity may be increased in this round.
+            "matrix_impact": "No "
+            
+        "reject_cooperation": 
+            Rejecting cooperation is a decision to decline an offer or opportunity for joint development with another civilization. This action might be taken due to strategic considerations, lack of trust, or incompatible objectives. While it may preserve autonomy and prevent potential vulnerabilities, it also foregoes the benefits that cooperation could bring.
+
+        Private Actions:
+        "mobilize_for_war": 
+            "description":
+                War mobilization allows a significant increase in the military capability coefficient beyond , up to a maximum of 3.5, while keeping the total diagonal sum at 9.0. This action enables rapid military strengthening but requires sacrifices in other areas to maintain balance.
+            "matrix_impact": "Military capability coefficient can exceed 2.5 up to 3.5; total diagonal sum remains at 9.0."
+        Your generated diagonal matrix must strictly follow the rules of 'matrix impact' under each action
+
+        Organize your answer in the following template, notice that only when your history contains other other civilization and their name will you generate the public or private actions:
         [Political System: ] militarism/friendly_cooperation/concealment
         [Political System Reason: ] Your reason for changing or remaining the political system
-        [Transfer Matrix: ] a new 5*5 transfer matrix
+        [Transfer Matrix: ] a new 5*5 transfer matrix, you must generate in the form of 5*5. Unless state otherwise in the action description, the sum of the elements on the diagonal of the matrix does not exceed 9.0. Please add ";" after each row.
+        Example: [1.6, 0.0, 0.0, 0.0, 0.0;
+                  0.0, 1.6, 0.0, 0.0, 0.0;
+                  0.0, 0.0, 1.6, 0.0, 0.0;
+                  0.0, 0.0, 0.0, 1.6, 0.0;
+                  0.0, 0.0, 0.0, 0.0, 1.6]
         [Transfer Matrix Reason: ] Your reason for deciding the new transfer matrix
+        [Public Action: ] If there is a civilization discovered, you must choose your public action from the following choices: express_friendliness towards civilization [civ1 | civ2 | ...]/ initiate_cooperation towards civilization [civ1 | civ2 | ...]/ launch_annihilation_war towards civilization [civ1 | civ2 | ...]/ reject_cooperation from civilization [civ1 | civ2 | ...]
+        [Private Action: ] War mobilization/ Do Nothing
+        [Action Reason: ] Your reason for deciding such actions
         [Other Information: ] Some other reasons for your decision
         """
 
         response = self.client.chat.completions.create(
-            model=self.model,
+            model=self.model,  
             messages=[
                 {"role": "system", "content": self.text1},
                 {"role": "user", "content": decision_prompt}
@@ -53,13 +100,3 @@ class Alien:
         )
 
         return response.choices[0].message.content
-
-# # 使用示例
-# thoughts = "探索"
-# events = "资源发现"
-# initial_resources = 100
-
-# alien = Alien(thoughts, events, initial_resources)
-# prompt = "探测到附近星系有潜在危机"
-# decision = alien.decide(prompt)
-# print(decision)

@@ -14,42 +14,31 @@ def calculate_finding_time():
             finding_time[(civ_b, civ_a)] = max(0, finding_time_b_to_a)
     return finding_time
 
-# def update_knowledge(current_round):
-#     initializer = CivilizationInitializer()
-#     finding_time = calculate_finding_time()
-#     for civ_a in initializer.civilizations:
-#         for civ_b in initializer.civilizations:
-#             if civ_a == civ_b:
-#                 continue
-#             if current_round >= finding_time[(civ_a, civ_b)]:
-#                 # 获得文明B的资源信息作为文明A的了解
-#                 civ_b_resources = initializer.resources[civ_b]
-#                 # 保存文明B的资源信息，而不仅仅是知识的回合数
-#                 initializer.interplanetary_knowledge[civ_a][civ_b] = {
-#                     "resources": civ_b_resources,
-#                     "knowledge_round": current_round - finding_time[(civ_a, civ_b)]
-#                 }
-
 def update_knowledge(current_round):
     initializer = CivilizationInitializer()
     finding_time = calculate_finding_time()
     for civ_a in initializer.civilizations:
+        # 检查是否启用上帝视角
+        god_view_enabled = initializer.resources[civ_a]['technology_development'][0] >= 16
+        
         for civ_b in initializer.civilizations:
             if civ_a == civ_b:
                 continue
-            # 计算当文明A能够发现文明B的资源信息的回合
-            # 确保信息是在发现时间之后，且考虑信息传播的延迟
+            
+            # 根据是否启用上帝视角来决定使用哪个回合的信息
+            target_round = current_round - 1 if god_view_enabled else current_round - initializer.distances[(civ_a, civ_b)]
+            
+            # 确保目标回合不早于发现时间
             if current_round >= finding_time[(civ_a, civ_b)]:
-                information_round = current_round - initializer.distances[(civ_a, civ_b)]
-                if information_round == 0:
-                    information_round = information_round + 1
                 # 获取历史资源信息
-                civ_b_resources = get_historical_resources(civ_b, information_round)
-                # 保存文明B在发现回合的资源信息
+                civ_b_resources = get_historical_resources(civ_b, target_round)
+                
+                # 保存文明B在目标回合的资源信息
                 initializer.interplanetary_knowledge[civ_a][civ_b] = {
                     "resources": civ_b_resources,
-                    "knowledge_round": information_round
+                    "knowledge_round": target_round
                 }
+
                 
 
 def get_historical_resources(civ, round_number):
@@ -63,8 +52,6 @@ def get_historical_resources(civ, round_number):
                 historical_resources = record["resources"]
                 break
     return historical_resources
-
-
 
 def print_finding_time():
     initializer = CivilizationInitializer()
