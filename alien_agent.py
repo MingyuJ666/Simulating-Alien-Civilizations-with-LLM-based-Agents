@@ -3,7 +3,7 @@ import random
 import os
 from action_space import *
 from openai import OpenAI
-os.environ['OPENAI_API_KEY'] =  "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"
+os.environ['OPENAI_API_KEY'] =  ""
 action_space = ActionSpace()
 
 class Alien:
