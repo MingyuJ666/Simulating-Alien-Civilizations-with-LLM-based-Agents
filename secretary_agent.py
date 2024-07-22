@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 import numpy as np
-os.environ['OPENAI_API_KEY'] = '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'
+os.environ['OPENAI_API_KEY'] = 'to be fill'
 
 class Secretary:
     def __init__(self):
